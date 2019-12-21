@@ -1,0 +1,4 @@
+curl -sX POST \
+  http://127.0.0.1:8080/config \
+  -H 'content-type: application/json' \
+  -d '{"key":"SERVICE_A", "loc": "tcp://127.0.0.1:13131"}'
