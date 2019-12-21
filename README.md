@@ -1,9 +1,9 @@
 # Bartender
 
 
-<img src="https://www.flaticon.com/free-icon/bartender_804645?term=bartender&page=1&position=2#" width=300/> 
+<img src="https://image.flaticon.com/icons/png/512/804/804645.png" width=300/> 
 
-"Cause they always - got a guy"
+**"Oh you need that - I got a guy"**
 
 Bartender is serverless framework with no containerized runtime that handles REST requests and pass them to the according service.
 
