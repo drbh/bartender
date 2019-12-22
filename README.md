@@ -47,3 +47,13 @@ then
 ```bash
 kill %1
 ```
+
+## Dependencies
+
+```bash
+sudo apt install tmux
+```
+
+```bash
+pip3 install pynng
+```
