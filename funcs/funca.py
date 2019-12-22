@@ -1,7 +1,7 @@
 from pynng import Rep0
 import json, sys
 
-address = 'tcp://127.0.0.1:13132'
+address = 'tcp://127.0.0.1:13131'
 
 def connect_and_listen():
 	with Rep0(listen=address) as rep:
