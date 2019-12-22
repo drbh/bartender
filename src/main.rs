@@ -24,7 +24,7 @@ struct ServiceItem {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct ApplicationData {
-    counter: usize,
+    // counter: usize,
     locations: HashMap<String, String>,
 }
 
@@ -71,6 +71,11 @@ async fn terminate(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
 
 async fn list(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
     let app_dat = app_dat.lock().unwrap();
+    HttpResponse::Ok().json(app_dat.clone()) // <- send response
+}
+
+async fn init(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
+    let app_dat = app_dat.lock().unwrap();
     let tmux = TmuxInterface::new();
     let new_session = NewSession {
         detached: Some(true),
@@ -92,7 +97,7 @@ async fn tmux_list(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     let data = web::Data::new(Mutex::new(ApplicationData {
-        counter: 0,
+        // counter: 0,
         locations: HashMap::new(),
     }));
     env_logger::init();
@@ -104,6 +109,7 @@ async fn main() -> std::io::Result<()> {
             .data(web::JsonConfig::default().limit(4096)) // <- limit size of the payload (global configuration)
             .service(web::resource("/").route(web::post().to(index)))
             .service(web::resource("/list").route(web::get().to(list)))
+            .service(web::resource("/init").route(web::get().to(init)))
             .service(web::resource("/terminate").route(web::get().to(terminate)))
             .service(web::resource("/functions").route(web::get().to(tmux_list)))
             .service(web::resource("/config").route(web::post().to(config)))
