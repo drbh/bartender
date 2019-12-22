@@ -1,5 +1,5 @@
 extern crate tmux_interface;
-use crate::tmux_interface::{NewSession, TmuxInterface};
+use crate::tmux_interface::{NewSession, TmuxInterface, Sessions};
 
 use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use nng::{Message, Protocol, Socket};
@@ -9,11 +9,12 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::str;
 use std::sync::Mutex;
+use bytes::{Bytes};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct GatewayRequest {
     service: String,
-    number: i32,
+    number: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -29,17 +30,19 @@ struct ApplicationData {
 }
 
 async fn index(
-    item: web::Json<GatewayRequest>,
+    // item: web::Json<GatewayRequest>,
+    item: Bytes,
     app_dat: web::Data<Mutex<ApplicationData>>,
 ) -> HttpResponse {
-    let data = json!(item.0).to_string();
+    let result = json::parse(std::str::from_utf8(&item).unwrap()).unwrap(); // return Result
+    let service = result["service"].to_string();
     let app_dat = app_dat.lock().unwrap();
-
-    match app_dat.locations.get(&item.service) {
+    
+    match app_dat.locations.get(&service) {
         Some(loc) => {
 
             let json_str = json!("failed").to_string();
-            let result = execute_tmux_function(loc, &data).unwrap_or(json_str);
+            let result = execute_tmux_function(loc, &result.to_string()).unwrap_or(json_str);
             HttpResponse::Ok()
                 .content_type("application/json; charset=utf-8")
                 .body(result) // <- send response
@@ -75,22 +78,33 @@ async fn list(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
 }
 
 async fn init(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
+    println!("{:?}","called" );
     let app_dat = app_dat.lock().unwrap();
     let tmux = TmuxInterface::new();
     let new_session = NewSession {
         detached: Some(true),
         session_name: Some("session_name"),
-        shell_command: Some("python3 /home/drbh/bartender/funcs/funca.py"),
+        shell_command: Some("python3 /home/drbh/bartender/funcs/funcc.py"),
         ..Default::default()
     };
-    tmux.new_session(&new_session).unwrap();
+    let y = tmux.new_session(&new_session).unwrap();
+    println!("{:#?}", y);
     HttpResponse::Ok().json(app_dat.clone()) // <- send response
 }
 
-async fn tmux_list(app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
-    let app_dat = app_dat.lock().unwrap();
+async fn tmux_list(_app_dat: web::Data<Mutex<ApplicationData>>) -> HttpResponse {
+    // let app_dat = app_dat.lock().unwrap();
     let tmux = TmuxInterface::new();
-    HttpResponse::Ok().json(app_dat.clone()) // <- send response
+    let sessions_str = tmux.list_sessions(None).unwrap();
+
+    let sessions = Sessions::parse(&sessions_str).unwrap();
+    // for session in &sessions {
+    //     if session.id == 0 {
+    //     }
+    // }
+
+    println!("{:?}", sessions);
+    HttpResponse::Ok().json("sessions") // <- send response
 }
 
 #[actix_rt::main]

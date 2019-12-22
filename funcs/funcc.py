@@ -1,7 +1,7 @@
 import json
 
 def patron_handler(context, event):
-	print("hello world")
+	print(event)
 	return json.dumps(event)
 
 from bartender import Bartender
